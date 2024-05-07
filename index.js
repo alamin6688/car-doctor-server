@@ -68,6 +68,13 @@ app.get('/services/:id', async(req, res)=>{
       res.send(result);
     })
 
+    // Delete booking item
+    app.delete('/bookings/:id', async(req, res)=>{
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id)}
+      const result = await bookingCollection.deleteOne(query);
+      res.send(result);
+    })
 
 
     // Send a ping to confirm a successful connection
