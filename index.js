@@ -49,7 +49,7 @@ app.get('/services/:id', async(req, res)=>{
     res.send(result);
 })
 
-    //bookongs
+    //bookings
     app.get('/bookings', async(req,res)=>{
       console.log(req.query.email);
       let query = {};
@@ -65,6 +65,22 @@ app.get('/services/:id', async(req, res)=>{
       const booking = req.body;
       console.log(booking)
       const result = await bookingCollection.insertOne(booking);
+      res.send(result);
+    })
+
+    // Update booking item
+    app.patch('/bookings/:id', async(req, res)=>{
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id)};
+      // const options = {upsert : true}
+      const upadtedBooking = req.body;
+      console.log(upadtedBooking);
+      const updateDoc = {
+        $set: {
+          status: upadtedBooking.status
+        },
+      };
+      const result = await bookingCollection.updateOne(filter, updateDoc);
       res.send(result);
     })
 
