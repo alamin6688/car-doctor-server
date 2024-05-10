@@ -31,15 +31,17 @@ const client = new MongoClient(uri, {
 
 // middlewares:
 const logger = async(req, res, next) =>{
-  console.log('Called:', req.host, req.originalUrl)
+  console.log('log: info', req.method, req.url);
+  // console.log('Called:', req.host, req.originalUrl)
   next();
 }
 
 const verifyToken = async(req,res, next)=>{
   const token = req.cookies?.token;
   console.log('value of token in middleware', token)
+  // no token avaliable
   if(!token){
-    return res.status(401).send({message: 'Not Authoraized!'})
+    return res.status(401).send({message: 'Unauthoraized access!'})
   }
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err,decoded) =>{
     //error
@@ -107,10 +109,15 @@ app.get('/services/:id', async(req, res)=>{
     //bookings
     app.get('/bookings', logger, verifyToken, async(req,res)=>{
       console.log(req.query.email);
+      // console.log('cook cookies', req.cookies)
       // console.log('tok tok token', req.cookies.token)
       console.log('user in the from valid token', req.user)
       if(req.query.email !== req.user.email){
         return res.status(403).send({message: 'Forbidden Access!'})
+      }
+      console.log('token owner info', req.user);
+      if(req.user.email !== req.query.email){
+        return res.status(403).send({message: 'forbidden access!'})
       }
       let query = {};
       if(req.query?.email){
