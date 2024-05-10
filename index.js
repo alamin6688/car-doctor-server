@@ -9,7 +9,11 @@ const port = process.env.PORT || 5000;
 
 // middleware
 app.use(cors({
-  origin: ['http://localhost:5173'],
+  origin: [
+    'http://localhost:5173',
+    'https://cars-doctor-83d4c.web.app',
+    'https://cars-doctor-83d4c.firebaseapp.com',
+  ],
   credentials: true
 }));
 app.use(express.json());
@@ -56,10 +60,16 @@ const verifyToken = async(req,res, next)=>{
   })
 }
 
+const cookieOption = {
+  httpOnly: true,
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+  secure: process.env.NODE_ENV === "production" ? true : false,
+};
+
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const serviceCollection = client.db('carDoctor').collection('services')
     const bookingCollection = client.db('carDoctor').collection('bookings')
@@ -71,20 +81,16 @@ async function run() {
       console.log('user for token', user);
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn:'1h'})
 
-      res
-      .cookie('token', token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none'
-      })
-      .send({success: true});
+      res.cookie('token', token, cookieOption).send({success: true});
     })
 
     // Logout
     app.post('/logout', async(req, res)=>{
       const user = req.body;
       console.log('logging out', user);
-      res.clearCookie('token', {maxAge: 0}).send({success: true});
+      res
+      .clearCookie('token', {...cookieOption , maxAge: 0})
+      .send({success: true});
     })
 
 
@@ -161,7 +167,7 @@ app.get('/services/:id', async(req, res)=>{
 
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
