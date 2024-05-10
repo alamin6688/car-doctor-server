@@ -63,20 +63,27 @@ async function run() {
     const bookingCollection = client.db('carDoctor').collection('bookings')
 
     // Auth releted api
+    // Login
     app.post('/jwt', logger, async(req, res) =>{
       const user = req.body;
-      console.log(user);
+      console.log('user for token', user);
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn:'1h'})
 
       res
       .cookie('token', token, {
         httpOnly: true,
-        secure: false,
-        // sameSite: 'none'
+        secure: true,
+        sameSite: 'none'
       })
       .send({success: true});
     })
 
+    // Logout
+    app.post('/logout', async(req, res)=>{
+      const user = req.body;
+      console.log('logging out', user);
+      res.clearCookie('token', {maxAge: 0}).send({success: true});
+    })
 
 
     // Services releted api
